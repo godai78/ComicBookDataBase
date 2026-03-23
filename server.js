@@ -1,8 +1,6 @@
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
-const { google } = require('googleapis');
-const fetch = require('node-fetch');
 const { importFromGoogleSheets } = require('./googleSheets');
 
 const app = express();
@@ -128,32 +126,6 @@ app.delete('/api/comics/:id', async (req, res) => {
 	} catch (error) {
 		console.error('Error deleting comic:', error);
 		res.status(500).json({ error: 'Error deleting comic' });
-	}
-});
-
-// Get unique languages
-app.get('/api/languages', async (req, res) => {
-	try {
-		const translationsDir = path.join(__dirname, 'translations');
-		const files = await fs.readdir(translationsDir);
-		
-		const languages = files
-			.filter(file => file.endsWith('.json'))
-			.map(file => {
-				const code = file.replace('.json', '');
-				const name = {
-					'en': 'English',
-					'pl': 'Polski',
-					'de': 'Deutsch',
-					'sv': 'Svenska'
-				}[code] || code;
-				return { code, name };
-			});
-
-		res.json(languages);
-	} catch (error) {
-		console.error('Error reading translations directory:', error);
-		res.status(500).json({ error: 'Failed to read translations directory' });
 	}
 });
 
