@@ -431,7 +431,26 @@
 				const response = await fetch('/api/comics');
 				if (!response.ok) throw new Error('Failed to load comics');
 				comicDatabase = await response.json();
-				comicDatabase.sort((a, b) => a.seriesTitle.localeCompare(b.seriesTitle));
+				comicDatabase.sort((a, b) => {
+					// First sort by series (empty first)
+					const aSeries = (a.seriesTitle || '').trim();
+					const bSeries = (b.seriesTitle || '').trim();
+					if (aSeries === '' && bSeries !== '') return -1;
+					if (aSeries !== '' && bSeries === '') return 1;
+					const seriesCompare = aSeries.localeCompare(bSeries);
+					if (seriesCompare !== 0) return seriesCompare;
+					
+					// Then sort by title
+					const aTitle = (a.issueTitle || '').trim().toLowerCase();
+					const bTitle = (b.issueTitle || '').trim().toLowerCase();
+					const titleCompare = aTitle.localeCompare(bTitle);
+					if (titleCompare !== 0) return titleCompare;
+					
+					// Finally sort by issue number
+					const aIssue = parseInt(a.issueNumber) || 0;
+					const bIssue = parseInt(b.issueNumber) || 0;
+					return aIssue - bIssue;
+				});
 				displayComics(comicDatabase);
 				updateRecordCount(comicDatabase.length);
 				updateLanguageDropdown();
@@ -491,8 +510,10 @@
 			th.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
 
 			const sortedComics = [...comicDatabase].sort((a, b) => {
+				// Compare primary sort field
 				let aValue = a[field];
 				let bValue = b[field];
+				let primaryCompare = 0;
 
 				// Handle arrays (writers and artists)
 				if (Array.isArray(aValue)) {
@@ -504,14 +525,41 @@
 				if (field === 'issueNumber' || field === 'publicationYear') {
 					aValue = parseInt(aValue) || 0;
 					bValue = parseInt(bValue) || 0;
-					return direction === 'asc' ? aValue - bValue : bValue - aValue;
+					primaryCompare = direction === 'asc' ? aValue - bValue : bValue - aValue;
+				} else {
+					// Handle string values
+					aValue = (aValue || '').toString().toLowerCase();
+					bValue = (bValue || '').toString().toLowerCase();
+					if (aValue < bValue) primaryCompare = direction === 'asc' ? -1 : 1;
+					else if (aValue > bValue) primaryCompare = direction === 'asc' ? 1 : -1;
 				}
 
-				// Handle string values
-				aValue = (aValue || '').toString().toLowerCase();
-				bValue = (bValue || '').toString().toLowerCase();
-				if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-				if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+				// If primary sort fields are equal, apply hierarchical sorting
+				if (primaryCompare !== 0) return primaryCompare;
+
+				// Secondary sorts: series, then title, then issue number
+				if (field !== 'seriesTitle') {
+					const aSeries = (a.seriesTitle || '').trim();
+					const bSeries = (b.seriesTitle || '').trim();
+					if (aSeries === '' && bSeries !== '') return -1;
+					if (aSeries !== '' && bSeries === '') return 1;
+					const seriesCompare = aSeries.localeCompare(bSeries);
+					if (seriesCompare !== 0) return seriesCompare;
+				}
+
+				if (field !== 'issueTitle') {
+					const aTitle = (a.issueTitle || '').trim().toLowerCase();
+					const bTitle = (b.issueTitle || '').trim().toLowerCase();
+					const titleCompare = aTitle.localeCompare(bTitle);
+					if (titleCompare !== 0) return titleCompare;
+				}
+
+				if (field !== 'issueNumber') {
+					const aIssue = parseInt(a.issueNumber) || 0;
+					const bIssue = parseInt(b.issueNumber) || 0;
+					if (aIssue !== bIssue) return aIssue - bIssue;
+				}
+
 				return 0;
 			});
 

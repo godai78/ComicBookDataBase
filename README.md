@@ -7,7 +7,7 @@ A web application for managing your comic collection. Built with Node.js and van
 - View and search your comic collection
 - Add new comics with detailed information
 - Edit existing comic entries
-- Sort by any column
+- Sort by any column (hierarchical: series → title → issue number)
 - Dynamic search suggestions
 - Import from Google Sheets
 - Export to CSV (compatible with Google Docs/Sheets)
@@ -62,6 +62,7 @@ The application supports multiple languages through a translation system. Curren
 - Polish (pl)
 - German (de)
 - Swedish (sv)
+- French (fr)
 
 ### Adding New Translations
 
