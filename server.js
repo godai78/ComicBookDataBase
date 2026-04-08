@@ -9,7 +9,6 @@ const port = 3000;
 // Middleware
 app.use(express.json());
 app.use(express.static('.'));
-app.use(express.static('public'));
 app.use('/translations', express.static('translations'));
 
 // Data file path
@@ -129,19 +128,6 @@ app.delete('/api/comics/:id', async (req, res) => {
 	}
 });
 
-// Get unique publishers
-app.get('/api/publishers', async (req, res) => {
-	try {
-		const data = await fs.readFile(dataFilePath, 'utf8');
-		const comics = JSON.parse(data);
-		const publishers = [...new Set(comics.map(comic => comic.publisher))];
-		res.json(publishers);
-	} catch (error) {
-		console.error('Error getting publishers:', error);
-		res.status(500).json({ error: 'Error getting publishers' });
-	}
-});
-
 // Import comics from Google Sheets
 app.post('/api/import', async (req, res) => {
 	try {
@@ -165,17 +151,6 @@ app.post('/api/import', async (req, res) => {
 		console.error('Error importing comics:', error);
 		res.status(500).json({ error: 'Error importing comics' });
 	}
-});
-
-// Serve translation files
-app.get('/translations.json', (req, res) => {
-	res.sendFile(path.join(__dirname, 'translations', 'en.json'));
-});
-
-// Serve translations.js
-app.get('/translations.js', (req, res) => {
-	res.setHeader('Content-Type', 'application/javascript');
-	res.sendFile(path.join(__dirname, 'translations.js'));
 });
 
 // Serve translations

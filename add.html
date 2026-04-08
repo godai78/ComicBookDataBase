@@ -143,35 +143,6 @@
                 window.translations = data.translations;
                 window.availableLanguages = data.availableLanguages;
                 
-                // Override translatePage to use saved language
-                window.translatePage = function() {
-                    const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-                    const translations = window.translations[currentLang];
-
-                    if (!translations) {
-                        console.error('No translations found for language:', currentLang);
-                        return;
-                    }
-
-                    // Translate all elements with data-translate attribute
-                    document.querySelectorAll('[data-translate]').forEach(element => {
-                        const key = element.getAttribute('data-translate');
-                        const translation = getTranslation(translations, key);
-                        if (translation) {
-                            element.textContent = translation;
-                        }
-                    });
-
-                    // Translate all elements with data-translate-placeholder attribute
-                    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-                        const key = element.getAttribute('data-translate-placeholder');
-                        const translation = getTranslation(translations, key);
-                        if (translation) {
-                            element.placeholder = translation;
-                        }
-                    });
-                };
-                
                 // Apply translations
                 translatePage();
                 
