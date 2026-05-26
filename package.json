@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "express": "^4.22.2",
-    "googleapis": "^128.0.0",
+    "googleapis": "^172.0.0",
     "node-fetch": "^2.7.0"
   }
 }
