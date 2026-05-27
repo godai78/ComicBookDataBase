@@ -101,30 +101,67 @@ The translation files follow this structure:
 ```json
 {
     "app": {
-        "languageName": "English",
-        "pageTitle": "Comic Collection Manager"
+        "pageTitle": "Comic collection manager",
+        "recordCount": "({count} records)"
     },
     "search": {
-        "title": "Search Comics",
+        "title": "Search comics",
         "seriesPlaceholder": "Search by series name...",
-        "issueTitlePlaceholder": "Search by issue title...",
+        "issueTitlePlaceholder": "Search by title...",
         "writerPlaceholder": "Search by writer...",
         "artistPlaceholder": "Search by artist...",
-        "languageFilter": "All Languages",
-        "publisherFilter": "All Publishers",
-        "yearFilter": "All Years"
+        "languageFilter": "All languages",
+        "publisherFilter": "All publishers",
+        "yearFilter": "All years",
+        "searchButton": "Search",
+        "addButton": "Add new comic",
+        "importButton": "Import from Google Sheets",
+        "exportButton": "Export to CSV"
     },
     "comic": {
+        "title": {
+            "add": "Add new comic",
+            "edit": "Edit comic"
+        },
         "fields": {
             "series": "Series",
             "issueTitle": "Title",
-            "issueNumber": "Issue #",
+            "issueNumber": "Number",
             "writers": "Writers",
             "artists": "Artists",
             "language": "Language",
             "publisher": "Publisher",
             "year": "Year"
+        },
+        "form": {
+            "writersHint": "Separate multiple writers with commas",
+            "artistsHint": "Separate multiple artists with commas"
+        },
+        "actions": {
+            "edit": "Edit",
+            "delete": "Delete",
+            "save": "Save comic",
+            "cancel": "Cancel",
+            "backToList": "← Back to comics list"
         }
+    },
+    "messages": {
+        "deleteConfirm": "Are you sure you want to delete this comic?",
+        "deleteSuccess": "Comic deleted successfully",
+        "saveSuccess": "Comic saved successfully",
+        "error": "An error occurred",
+        "loadingError": "Error loading comics. Please try again.",
+        "import": {
+            "promptUrl": "Paste the shared Google Sheets URL:",
+            "errorPrefix": "Error importing comics:",
+            "noValidRows": "No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.",
+            "notShared": "The spreadsheet is not publicly shared. Please share it with \"Anyone with the link can view\".",
+            "invalidGoogleUrl": "URL must be a docs.google.com Google Sheets link"
+        }
+    },
+    "navigation": {
+        "backToMain": "← Back to main page",
+        "backToTop": "Back to top"
     }
 }
 ``` 
