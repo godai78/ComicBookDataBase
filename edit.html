@@ -163,11 +163,11 @@
                 seriesTitle: document.getElementById('series').value,
                 issueTitle: document.getElementById('title').value,
                 issueNumber: parseInt(document.getElementById('number').value) || 1,
-                writers: document.getElementById('writers').value.split(',').map(w => w.trim()),
-                artists: document.getElementById('artists').value.split(',').map(a => a.trim()),
+                writers: document.getElementById('writers').value.split(',').map(w => w.trim()).filter(Boolean),
+                artists: document.getElementById('artists').value.split(',').map(a => a.trim()).filter(Boolean),
                 language: document.getElementById('language').value,
                 publisher: document.getElementById('publisher').value,
-                publicationYear: parseInt(document.getElementById('year').value)
+                publicationYear: parseInt(document.getElementById('year').value) || null
             };
 
             try {

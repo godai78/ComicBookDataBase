@@ -293,7 +293,7 @@
 				<div id="artistSuggestions" class="suggestions"></div>
 			</div>
 			<div class="search-group">
-				<select id="languageFilter" onchange="filterComics()">
+				<select id="languageFilter" onchange="searchComics()">
 					<option value="" data-translate="search.languageFilter">All Languages</option>
 				</select>
 			</div>
@@ -356,6 +356,43 @@
 	<script>
 		let comicDatabase = [];
 		let currentSort = { field: null, direction: 'asc' };
+
+		function getWriters(comic) {
+			if (Array.isArray(comic.writers)) {
+				return comic.writers.filter(Boolean);
+			}
+			if (comic.writer) {
+				return [comic.writer];
+			}
+			return [];
+		}
+
+		function getArtists(comic) {
+			if (Array.isArray(comic.artists)) {
+				return comic.artists.filter(Boolean);
+			}
+			return [];
+		}
+
+		function t(key, fallback) {
+			const languageSelect = document.getElementById('languageSelect');
+			const currentLang = languageSelect ? languageSelect.value : (localStorage.getItem('selectedLanguage') || 'en');
+			const langTranslations = window.translations && window.translations[currentLang];
+			if (!langTranslations || typeof getTranslation !== 'function') {
+				return fallback;
+			}
+			return getTranslation(langTranslations, key) || fallback;
+		}
+
+		function translateImportError(message) {
+			const errorMap = {
+				'No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.': 'messages.import.noValidRows',
+				'The spreadsheet is not publicly shared. Please share it with "Anyone with the link can view".': 'messages.import.notShared',
+				'URL must be a docs.google.com Google Sheets link': 'messages.import.invalidGoogleUrl'
+			};
+			const key = errorMap[message];
+			return key ? t(key, message) : message;
+		}
 
 		// Function to update language dropdown
 		function updateLanguageDropdown() {
@@ -473,8 +510,8 @@
 					<td>${comic.seriesTitle}</td>
 					<td>${comic.issueTitle}</td>
 					<td>${comic.issueNumber || ''}</td>
-					<td>${(Array.isArray(comic.writers) ? comic.writers : [comic.writer]).join(', ')}</td>
-					<td>${comic.artists.join(', ')}</td>
+					<td>${getWriters(comic).join(', ')}</td>
+					<td>${getArtists(comic).join(', ')}</td>
 					<td>${comic.language}</td>
 					<td>${comic.publisher}</td>
 					<td>${comic.publicationYear}</td>
@@ -623,9 +660,7 @@
 				return;
 			}
 
-			const allWriters = comicDatabase.flatMap(comic => 
-				Array.isArray(comic.writers) ? comic.writers : [comic.writer]
-			);
+			const allWriters = comicDatabase.flatMap(comic => getWriters(comic));
 			const uniqueWriters = [...new Set(allWriters)];
 			const filtered = uniqueWriters.filter(writer => 
 				writer.toLowerCase().includes(value)
@@ -649,7 +684,7 @@
 				return;
 			}
 
-			const allArtists = comicDatabase.flatMap(comic => comic.artists);
+			const allArtists = comicDatabase.flatMap(comic => getArtists(comic));
 			const uniqueArtists = [...new Set(allArtists)];
 			const filtered = uniqueArtists.filter(artist => 
 				artist.toLowerCase().includes(value)
@@ -716,19 +751,19 @@
 			}
 
 			const filteredComics = comicDatabase.filter(comic => {
-				const matchesSeries = comic.seriesTitle.toLowerCase().includes(seriesSearch);
-				const matchesIssueTitle = comic.issueTitle.toLowerCase().includes(issueTitleSearch);
+				const matchesSeries = (comic.seriesTitle || '').toLowerCase().includes(seriesSearch);
+				const matchesIssueTitle = (comic.issueTitle || '').toLowerCase().includes(issueTitleSearch);
 				
 				// Check if all searched writers are found in the comic's writers
 				const matchesWriters = writerSearch[0] === '' || 
 					writerSearch.every(writer => 
-						(Array.isArray(comic.writers) ? comic.writers : [comic.writer]).some(w => w.toLowerCase().includes(writer))
+						getWriters(comic).some(w => w.toLowerCase().includes(writer))
 					);
 				
 				// Check if all searched artists are found in the comic's artists
 				const matchesArtists = artistSearch[0] === '' || 
 					artistSearch.every(artist => 
-						comic.artists.some(a => a.toLowerCase().includes(artist))
+						getArtists(comic).some(a => a.toLowerCase().includes(artist))
 					);
 				
 				const matchesLanguage = !languageSearch || comic.language === languageSearch;
@@ -770,12 +805,24 @@
 
 		// Function to import from Google Sheets
 		async function importFromGoogleSheets() {
+			const sheetUrl = prompt(t('messages.import.promptUrl', 'Paste the shared Google Sheets URL:'));
+			if (!sheetUrl) {
+				return;
+			}
+
 			try {
 				const response = await fetch('/api/import', {
-					method: 'POST'
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ url: sheetUrl.trim() })
 				});
-				if (!response.ok) throw new Error('Import failed');
+
 				const result = await response.json();
+				if (!response.ok) {
+					throw new Error(result.error || 'Import failed');
+				}
 				alert(result.message);
 				await loadComicsFromServer();
 				updateLanguageDropdown();
@@ -783,7 +830,8 @@
 				updateYearDropdown();
 			} catch (error) {
 				console.error('Error importing comics:', error);
-				alert('Error importing comics. Please try again.');
+				const translatedMessage = translateImportError(error.message);
+				alert(`${t('messages.import.errorPrefix', 'Error importing comics:')} ${translatedMessage}`);
 			}
 		}
 
@@ -806,8 +854,8 @@
 				`"${comic.seriesTitle}"`,
 				`"${comic.issueTitle}"`,
 				comic.issueNumber,
-				`"${(Array.isArray(comic.writers) ? comic.writers : [comic.writer]).join(', ')}"`,
-				`"${comic.artists.join(', ')}"`,
+				`"${getWriters(comic).join(', ')}"`,
+				`"${getArtists(comic).join(', ')}"`,
 				`"${comic.language}"`,
 				`"${comic.publisher}"`,
 				comic.publicationYear

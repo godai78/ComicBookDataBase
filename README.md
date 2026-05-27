@@ -2,6 +2,10 @@
 
 A web application for managing your comic collection. Built with Node.js and vanilla JavaScript. Vibe-coded by godai using Cursor.
 
+## Changelog
+
+See `CHANGELOG.md` for release history and notable updates.
+
 ## Features
 
 - View and search your comic collection

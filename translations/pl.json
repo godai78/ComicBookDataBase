@@ -49,7 +49,14 @@
 		"deleteSuccess": "Komiks został usunięty",
 		"saveSuccess": "Komiks został zapisany",
 		"error": "Wystąpił błąd",
-		"loadingError": "Błąd podczas ładowania komiksów. Spróbuj ponownie."
+		"loadingError": "Błąd podczas ładowania komiksów. Spróbuj ponownie.",
+		"import": {
+			"promptUrl": "Paste the shared Google Sheets URL:",
+			"errorPrefix": "Error importing comics:",
+			"noValidRows": "No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.",
+			"notShared": "The spreadsheet is not publicly shared. Please share it with \"Anyone with the link can view\".",
+			"invalidGoogleUrl": "URL must be a docs.google.com Google Sheets link"
+		}
 	},
 	"navigation": {
 		"backToMain": "← Wróć do strony głównej",
