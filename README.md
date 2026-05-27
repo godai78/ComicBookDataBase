@@ -2,14 +2,18 @@
 
 A web application for managing your comic collection. Built with Node.js and vanilla JavaScript. Vibe-coded by godai using Cursor.
 
+## Changelog
+
+See `CHANGELOG.md` for release history and notable updates.
+
 ## Features
 
 - View and search your comic collection
 - Add new comics with detailed information
 - Edit existing comic entries
-- Sort by any column
+- Sort by any column (hierarchical: series → title → issue number)
 - Dynamic search suggestions
-- Import from Google Sheets
+- Import from Google Sheets using a pasted shared URL
 - Export to CSV (compatible with Google Docs/Sheets)
 - Record count display
 
@@ -17,8 +21,8 @@ A web application for managing your comic collection. Built with Node.js and van
 
 1. Clone the repository:
 ```bash
-git clone [your-repo-url]
-cd comic-collection-manager
+git clone https://github.com/godai78/CBD.git
+cd CBD
 ```
 
 2. Install dependencies:
@@ -39,21 +43,28 @@ http://localhost:3000
 ## Data Structure
 
 Each comic entry contains:
-- Series Title
-- Issue Title
-- Issue Number
-- Writers (multiple)
-- Artists (multiple)
-- Language
-- Publisher
-- Publication Year
+- `id`
+- `seriesTitle`
+- `issueTitle`
+- `issueNumber`
+- `writers` (array)
+- `artists` (array)
+- `language`
+- `publisher`
+- `publicationYear`
+
+For an empty database, `comics.json` should contain:
+
+```json
+[]
+```
 
 ## Technologies Used
 
 - Node.js
 - Express.js
 - Vanilla JavaScript
-- Google Sheets API 
+- Google Sheets CSV export endpoint
 
 ## Translations
 
@@ -62,6 +73,7 @@ The application supports multiple languages through a translation system. Curren
 - Polish (pl)
 - German (de)
 - Swedish (sv)
+- French (fr)
 
 ### Adding New Translations
 

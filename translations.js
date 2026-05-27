@@ -5,7 +5,8 @@ function getTranslation(translations, key) {
 
 // Translate the page
 function translatePage() {
-    const currentLang = document.getElementById('languageSelect').value;
+    const select = document.getElementById('languageSelect');
+    const currentLang = select ? select.value : (localStorage.getItem('selectedLanguage') || 'en');
     const translations = window.translations[currentLang];
 
     if (!translations) {

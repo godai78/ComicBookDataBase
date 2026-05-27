@@ -143,35 +143,6 @@
                 window.translations = data.translations;
                 window.availableLanguages = data.availableLanguages;
                 
-                // Override translatePage to use saved language
-                window.translatePage = function() {
-                    const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-                    const translations = window.translations[currentLang];
-
-                    if (!translations) {
-                        console.error('No translations found for language:', currentLang);
-                        return;
-                    }
-
-                    // Translate all elements with data-translate attribute
-                    document.querySelectorAll('[data-translate]').forEach(element => {
-                        const key = element.getAttribute('data-translate');
-                        const translation = getTranslation(translations, key);
-                        if (translation) {
-                            element.textContent = translation;
-                        }
-                    });
-
-                    // Translate all elements with data-translate-placeholder attribute
-                    document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
-                        const key = element.getAttribute('data-translate-placeholder');
-                        const translation = getTranslation(translations, key);
-                        if (translation) {
-                            element.placeholder = translation;
-                        }
-                    });
-                };
-                
                 // Apply translations
                 translatePage();
                 
@@ -193,14 +164,14 @@
         async function saveComic(event) {
             event.preventDefault();
             const formData = {
-                series: document.getElementById('series').value,
-                title: document.getElementById('title').value,
-                number: parseInt(document.getElementById('number').value) || 1,
-                writers: document.getElementById('writers').value.split(',').map(w => w.trim()),
-                artists: document.getElementById('artists').value.split(',').map(a => a.trim()),
+                seriesTitle: document.getElementById('series').value,
+                issueTitle: document.getElementById('title').value,
+                issueNumber: parseInt(document.getElementById('number').value) || 1,
+                writers: document.getElementById('writers').value.split(',').map(w => w.trim()).filter(Boolean),
+                artists: document.getElementById('artists').value.split(',').map(a => a.trim()).filter(Boolean),
                 language: document.getElementById('language').value,
                 publisher: document.getElementById('publisher').value,
-                year: parseInt(document.getElementById('year').value)
+                publicationYear: parseInt(document.getElementById('year').value) || null
             };
 
             try {
