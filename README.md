@@ -21,8 +21,8 @@ See `CHANGELOG.md` for release history and notable updates.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/godai78/CBD.git
-cd CBD
+git clone https://github.com/godai78/ComicBookDataBase.git
+cd ComicBookDataBase
 ```
 
 2. Install dependencies:
