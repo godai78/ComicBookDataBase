@@ -19,7 +19,16 @@ function translatePage() {
         const key = element.getAttribute('data-translate');
         const translation = getTranslation(translations, key);
         if (translation) {
-            element.textContent = translation;
+            if (key === 'app.recordCount' && element.id === 'record-count') {
+                const count = (typeof comicDatabase !== 'undefined' && Array.isArray(comicDatabase))
+                    ? comicDatabase.length
+                    : (typeof window.comicDatabase !== 'undefined' && Array.isArray(window.comicDatabase))
+                        ? window.comicDatabase.length
+                        : 0;
+                element.textContent = translation.replace('{count}', count);
+            } else {
+                element.textContent = translation;
+            }
         }
     });
 

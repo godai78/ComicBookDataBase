@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.6.1] - 2026-06-01
+
+### Changed
+- Minor layout changes (bottons moved around).
+
+### Fixed
+- Removed leftover Google api call from code.
+- Fixed translations for records number displayed on frontpage.
+
 ## [0.6] - 2026-05-27
 
 ### Added

@@ -271,7 +271,14 @@
 <body>
 	<div class="container">
 		<div class="header">
-			<h1>Comic Collection Manager <span id="record-count"></span></h1>
+			<h1>Comic Collection Manager <span id="record-count" data-translate="app.recordCount"></span></h1>
+			<select id="languageSelect" onchange="translatePage()" class="language-select">
+				<option value="en">English</option>
+				<option value="pl">Polski</option>
+				<option value="sv">Svenska</option>
+				<option value="de">Deutsch</option>
+				<option value="fr">Français</option>
+			</select>
 		</div>
 		
 		<div class="search-section">
@@ -886,7 +893,8 @@
 		// Function to update record count
 		function updateRecordCount(count) {
 			const recordCountElement = document.getElementById('record-count');
-			recordCountElement.textContent = `(${count} records)`;
+			const template = t('app.recordCount', `({count} records)`);
+			recordCountElement.textContent = template.replace('{count}', count);
 			recordCountElement.style.fontSize = '0.6em';
 			recordCountElement.style.color = '#666';
 			recordCountElement.style.marginLeft = '10px';
