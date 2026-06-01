@@ -1,7 +1,7 @@
 {
 	"app": {
 		"pageTitle": "Menedżer kolekcji komiksów",
-		"recordCount": "({count} rekordów)"
+		"recordCount": "({count} pozycji)"
 	},
 	"search": {
 		"title": "Szukaj komiksów",
