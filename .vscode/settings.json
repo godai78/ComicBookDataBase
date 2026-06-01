@@ -3,6 +3,7 @@
         "/^node -c server\\.js$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "npm install": true
     }
 }

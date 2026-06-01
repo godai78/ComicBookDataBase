@@ -311,22 +311,17 @@
 		<div class="button-group">
 			<button type="submit" data-translate="search.searchButton">Search</button>
 			<a href="add.html" class="add-btn" data-translate="search.addButton">Add New Comic</a>
-			<button type="button" onclick="importFromGoogleSheets()" data-translate="search.importButton">Import from Google Sheets</button>
-			<button type="button" onclick="exportToCSV()" data-translate="search.exportButton">Export to CSV</button>
 			<select id="languageSelect" onchange="translatePage()" class="language-select">
 				<option value="en">English</option>
 				<option value="pl">Polski</option>
 				<option value="sv">Svenska</option>
 				<option value="de">Deutsch</option>
 				<option value="fr">Français</option>
-				<option value="es">Español</option>
-				<option value="it">Italiano</option>
-				<option value="pt">Português</option>
-				<option value="ru">Русский</option>
-				<option value="ja">日本語</option>
-				<option value="ko">한국어</option>
-				<option value="zh">中文</option>
 			</select>
+		</div>
+		<div class="button-group">
+			<button type="button" onclick="importFromGoogleSheets()" data-translate="search.importButton">Import from Google Sheets</button>
+			<button type="button" onclick="exportToCSV()" data-translate="search.exportButton">Export to CSV</button>
 		</div>
 
 		<div class="comics-table">
