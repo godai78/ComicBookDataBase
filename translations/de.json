@@ -51,11 +51,11 @@
       "error": "Ein Fehler ist aufgetreten",
       "loadingError": "Fehler beim Laden der Comics. Bitte versuchen Sie es erneut.",
       "import": {
-          "promptUrl": "Paste the shared Google Sheets URL:",
-          "errorPrefix": "Error importing comics:",
-          "noValidRows": "No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.",
-          "notShared": "The spreadsheet is not publicly shared. Please share it with \"Anyone with the link can view\".",
-          "invalidGoogleUrl": "URL must be a docs.google.com Google Sheets link"
+			"promptUrl": "Fügen Sie die URL des freigegebenen Google Sheets-Dokuments ein:",
+			"errorPrefix": "Fehler beim Importieren der Comics:",
+			"noValidRows": "Keine gültigen Comic-Zeilen gefunden. Überprüfen Sie die Spalten des Tabellenblatts und stellen Sie sicher, dass mindestens der Serienname oder der Hefttitel vorhanden ist.",
+			"notShared": "Die Tabelle ist nicht öffentlich freigegeben. Bitte teilen Sie sie mit der Einstellung Jeder mit dem Link kann sie ansehen.",
+			"invalidGoogleUrl": "Die URL muss ein Google-Sheets-Link von docs.google.com sein"
       }
     },
     "navigation": {

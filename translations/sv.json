@@ -51,12 +51,12 @@
       "error": "Ett fel inträffade",
       "loadingError": "Fel vid laddning av serietidningar. Försök igen.",
       "import": {
-          "promptUrl": "Paste the shared Google Sheets URL:",
-          "errorPrefix": "Error importing comics:",
-          "noValidRows": "No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.",
-          "notShared": "The spreadsheet is not publicly shared. Please share it with \"Anyone with the link can view\".",
-          "invalidGoogleUrl": "URL must be a docs.google.com Google Sheets link"
-      }
+		"promptUrl": "Klistra in URL:en till det delade Google Sheets-dokumentet:",
+		"errorPrefix": "Fel vid import av serier:",
+		"noValidRows": "Inga giltiga serierader hittades. Kontrollera kalkylarkets kolumner och se till att åtminstone serienamn eller nummerets titel finns angiven.",
+		"notShared": "Kalkylarket är inte offentligt delat. Dela det med inställningen Alla med länken kan visa.",
+		"invalidGoogleUrl": "URL:en måste vara en docs.google.com-länk till Google Sheets"
+	}
     },
     "navigation": {
       "backToMain": "← Tillbaka till huvudsidan",
