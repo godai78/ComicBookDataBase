@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const { importFromGoogleSheets } = require('./googleSheets');
 
 const app = express();
@@ -9,8 +10,46 @@ let writeQueue = Promise.resolve();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static('.'));
 app.use('/translations', express.static('translations'));
+
+const AUTH_USERNAME = process.env.AUTH_USER || 'admin';
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'password';
+const AUTH_TOKEN = process.env.AUTH_TOKEN || 'cbd-secret-token';
+
+function getAuthToken(req) {
+	const authHeader = req.headers.authorization;
+	if (authHeader && authHeader.startsWith('Bearer ')) {
+		return authHeader.slice(7).trim();
+	}
+	return req.cookies?.authToken || null;
+}
+
+function requireAuth(req, res, next) {
+	const token = getAuthToken(req);
+	if (token !== AUTH_TOKEN) {
+		return res.status(401).json({ error: 'Unauthorized' });
+	}
+	next();
+}
+
+app.post('/api/login', (req, res) => {
+	const { username, password } = req.body;
+	if (username === AUTH_USERNAME && password === AUTH_PASSWORD) {
+		res.cookie('authToken', AUTH_TOKEN, {
+			httpOnly: true,
+			sameSite: 'Lax'
+		});
+		return res.json({ success: true, token: AUTH_TOKEN });
+	}
+	res.status(401).json({ error: 'Invalid credentials' });
+});
+
+app.post('/api/logout', (req, res) => {
+	res.clearCookie('authToken');
+	res.json({ success: true });
+});
 
 // Data file path
 const dataFilePath = path.join(__dirname, 'comics.json');
@@ -127,7 +166,7 @@ app.get('/api/comics/:id', async (req, res) => {
 });
 
 // Add a new comic
-app.post('/api/comics', async (req, res) => {
+app.post('/api/comics', requireAuth, async (req, res) => {
 	try {
 		const result = await withWriteLock(async () => {
 			const comics = await readComics();
@@ -154,7 +193,7 @@ app.post('/api/comics', async (req, res) => {
 });
 
 // Update a comic
-app.put('/api/comics/:id', async (req, res) => {
+app.put('/api/comics/:id', requireAuth, async (req, res) => {
 	const id = parseInt(req.params.id);
 	try {
 		const result = await withWriteLock(async () => {
@@ -195,7 +234,7 @@ app.put('/api/comics/:id', async (req, res) => {
 });
 
 // Delete a comic
-app.delete('/api/comics/:id', async (req, res) => {
+app.delete('/api/comics/:id', requireAuth, async (req, res) => {
 	const id = parseInt(req.params.id);
 	try {
 		const result = await withWriteLock(async () => {
@@ -223,7 +262,7 @@ app.delete('/api/comics/:id', async (req, res) => {
 });
 
 // Import comics from Google Sheets
-app.post('/api/import', async (req, res) => {
+app.post('/api/import', requireAuth, async (req, res) => {
 	try {
 		const sheetUrl = req.body?.url;
 		if (!sheetUrl || typeof sheetUrl !== 'string') {

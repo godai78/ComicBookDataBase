@@ -130,6 +130,11 @@
     <script>
         // Load translations when the page loads
         document.addEventListener('DOMContentLoaded', async () => {
+            if (!isLoggedIn()) {
+                window.location.href = 'login.html?redirect=add.html';
+                return;
+            }
+
             try {
                 // Get the saved language from localStorage (set by main page)
                 const savedLang = localStorage.getItem('selectedLanguage') || 'en';
@@ -160,6 +165,10 @@
             }
         });
 
+        function isLoggedIn() {
+            return !!localStorage.getItem('authToken');
+        }
+
         // Handle form submission
         async function saveComic(event) {
             event.preventDefault();
@@ -178,8 +187,10 @@
                 const response = await fetch('/api/comics', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(formData)
                 });
 

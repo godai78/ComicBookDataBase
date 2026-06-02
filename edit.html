@@ -132,6 +132,10 @@
         const urlParams = new URLSearchParams(window.location.search);
         const comicId = urlParams.get('id');
 
+        function isLoggedIn() {
+            return !!localStorage.getItem('authToken');
+        }
+
         // Load comic data
         async function loadComicData() {
             try {
@@ -174,8 +178,10 @@
                 const response = await fetch(`/api/comics/${comicId}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(comicData)
                 });
 
@@ -190,6 +196,11 @@
 
         // Load translations when the page loads
         document.addEventListener('DOMContentLoaded', async () => {
+            if (!isLoggedIn()) {
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                return;
+            }
+
             try {
                 // Get the saved language from localStorage (set by main page)
                 const savedLang = localStorage.getItem('selectedLanguage') || 'en';
