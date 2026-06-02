@@ -51,12 +51,12 @@
 	  "error": "Une erreur s'est produite",
 	  "loadingError": "Erreur lors du chargement des BDs. Veuillez réessayer.",
 	  "import": {
-		  "promptUrl": "Paste the shared Google Sheets URL:",
-		  "errorPrefix": "Error importing comics:",
-		  "noValidRows": "No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.",
-		  "notShared": "The spreadsheet is not publicly shared. Please share it with \"Anyone with the link can view\".",
-		  "invalidGoogleUrl": "URL must be a docs.google.com Google Sheets link"
-	  }
+		"promptUrl": "Collez l’URL du Google Sheets partagé :",
+		"errorPrefix": "Erreur lors de l’importation des bandes dessinées :",
+		"noValidRows": "Aucune ligne de bande dessinée valide trouvée. Vérifiez les colonnes de la feuille et assurez-vous qu’au moins le nom de la série ou le titre du numéro est présent.",
+		"notShared": "La feuille de calcul n’est pas partagée publiquement. Veuillez la partager avec l’option Toute personne disposant du lien peut afficher.",
+		"invalidGoogleUrl": "L’URL doit être un lien Google Sheets de docs.google.com"
+	}
 	},
 	"navigation": {
 	  "backToMain": "← Retour à la page principale",

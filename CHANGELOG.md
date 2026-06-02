@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.7] - 2026-06-02
+
+### Added
+- Admin user login.
+- Browsing without editing capabilities.
+
+### Changed
+- Updated translations.
+
 ## [0.6.1] - 2026-06-01
 
 ### Changed
