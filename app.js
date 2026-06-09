@@ -1,4 +1,8 @@
-const STORAGE_KEY = 'cbdComicDatabase';
+const AUTH_STORAGE_KEY = 'cbdAuthLoggedIn';
+const VIEW_ONLY_MODE_KEY = 'cbdViewOnlyMode';
+const API_BASE = '/api';
+const AUTH_USER = 'admin';
+const AUTH_PASSWORD = 'password';
 const AVAILABLE_LANGUAGES = [
     { code: 'en', name: 'English' },
     { code: 'pl', name: 'Polski' },
@@ -7,23 +11,91 @@ const AVAILABLE_LANGUAGES = [
     { code: 'fr', name: 'Français' }
 ];
 
-function loadComicDatabase() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-        return [];
-    }
-
-    try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-        console.error('Could not parse saved comic database:', error);
-        return [];
-    }
+function isUserLoggedIn() {
+    return localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
 }
 
-function saveComicDatabase(comics) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(comics));
+function loginUser(username, password) {
+    if (username === AUTH_USER && password === AUTH_PASSWORD) {
+        localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        return true;
+    }
+    return false;
+}
+
+function logoutUser() {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+function isViewOnlyMode() {
+    return localStorage.getItem(VIEW_ONLY_MODE_KEY) === 'true';
+}
+
+function setViewOnlyMode(value) {
+    localStorage.setItem(VIEW_ONLY_MODE_KEY, value ? 'true' : 'false');
+}
+
+function toggleViewOnlyMode() {
+    const nextMode = !isViewOnlyMode();
+    setViewOnlyMode(nextMode);
+    return nextMode;
+}
+
+async function requestJson(path, options = {}) {
+    const response = await fetch(`${API_BASE}${path}`, {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        ...options
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        const error = new Error(`API request failed: ${response.status} ${response.statusText}`);
+        error.details = text;
+        throw error;
+    }
+
+    if (response.status === 204) {
+        return null;
+    }
+
+    return response.json();
+}
+
+async function loadComicDatabase() {
+    return requestJson('/comics');
+}
+
+async function saveComicDatabase(comics) {
+    return requestJson('/comics/bulk', {
+        method: 'PUT',
+        body: JSON.stringify(comics)
+    });
+}
+
+async function createComic(comic) {
+    return requestJson('/comics', {
+        method: 'POST',
+        body: JSON.stringify(comic)
+    });
+}
+
+async function getComicById(id) {
+    return requestJson(`/comics/${encodeURIComponent(id)}`);
+}
+
+async function updateComicById(id, updatedComic) {
+    return requestJson(`/comics/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: JSON.stringify(updatedComic)
+    });
+}
+
+async function deleteComicById(id) {
+    return requestJson(`/comics/${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+    });
 }
 
 function getNextId(comics) {
@@ -31,29 +103,6 @@ function getNextId(comics) {
         const id = Number(comic.id) || 0;
         return Math.max(max, id);
     }, 0) + 1;
-}
-
-function getComicById(id) {
-    const comics = loadComicDatabase();
-    return comics.find(comic => String(comic.id) === String(id));
-}
-
-function updateComicById(id, updatedComic) {
-    const comics = loadComicDatabase();
-    const index = comics.findIndex(comic => String(comic.id) === String(id));
-    if (index === -1) {
-        return false;
-    }
-    comics[index] = { ...comics[index], ...updatedComic, id: Number(id) };
-    saveComicDatabase(comics);
-    return true;
-}
-
-function deleteComicById(id) {
-    const comics = loadComicDatabase();
-    const updated = comics.filter(comic => String(comic.id) !== String(id));
-    saveComicDatabase(updated);
-    return updated;
 }
 
 function normalizeComicInput(input) {
@@ -205,14 +254,14 @@ async function importFromGoogleSheets() {
         throw new Error('No valid comic rows found. Check sheet columns and ensure at least series or issue title is present.');
     }
 
-    const comics = loadComicDatabase();
+    const comics = await loadComicDatabase();
     let nextId = getNextId(comics);
     validComics.forEach(comic => {
         comic.id = nextId++;
         comics.push(comic);
     });
 
-    saveComicDatabase(comics);
+    await saveComicDatabase(comics);
     return {
         importedCount: validComics.length,
         totalCount: comics.length
@@ -222,11 +271,16 @@ async function importFromGoogleSheets() {
 window.APP = {
     loadComicDatabase,
     saveComicDatabase,
+    createComic,
     getNextId,
     getComicById,
     updateComicById,
     deleteComicById,
     normalizeComicInput,
     importFromGoogleSheets,
-    AVAILABLE_LANGUAGES
+    isUserLoggedIn,
+    loginUser,
+    logoutUser,
+    AVAILABLE_LANGUAGES,
+    AUTH_USER
 };

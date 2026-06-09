@@ -94,7 +94,7 @@
 <body>
     <div class="container">
         <a href="index.html" class="nav-link" data-translate="navigation.backToMain">← Back to Main Page</a>
-        <div class="app-note">This record is stored in your browser and will remain there until you clear storage or import/export it elsewhere.</div>
+        <div class="app-note">The comic is saved to the server file database and will remain available on the server.</div>
         <h1 data-translate="comic.title.edit">Edit Comic</h1>
         <form id="editComicForm" onsubmit="saveComic(event)">
             <div class="form-group">
@@ -142,25 +142,31 @@
         const urlParams = new URLSearchParams(window.location.search);
         const comicId = urlParams.get('id');
 
-        function loadComicData() {
-            const comic = getComicById(comicId);
-            if (!comic) {
-                alert('Comic not found');
-                window.location.href = 'index.html';
-                return;
-            }
+        async function loadComicData() {
+            try {
+                const comic = await getComicById(comicId);
+                if (!comic) {
+                    alert('Comic not found');
+                    window.location.href = 'index.html';
+                    return;
+                }
 
-            document.getElementById('series').value = comic.seriesTitle || '';
-            document.getElementById('title').value = comic.issueTitle || '';
-            document.getElementById('number').value = comic.issueNumber || '';
-            document.getElementById('writers').value = (Array.isArray(comic.writers) ? comic.writers : [comic.writer]).join(', ');
-            document.getElementById('artists').value = (Array.isArray(comic.artists) ? comic.artists : []).join(', ');
-            document.getElementById('language').value = comic.language || '';
-            document.getElementById('publisher').value = comic.publisher || '';
-            document.getElementById('year').value = comic.publicationYear || '';
+                document.getElementById('series').value = comic.seriesTitle || '';
+                document.getElementById('title').value = comic.issueTitle || '';
+                document.getElementById('number').value = comic.issueNumber || '';
+                document.getElementById('writers').value = (Array.isArray(comic.writers) ? comic.writers : [comic.writer]).join(', ');
+                document.getElementById('artists').value = (Array.isArray(comic.artists) ? comic.artists : []).join(', ');
+                document.getElementById('language').value = comic.language || '';
+                document.getElementById('publisher').value = comic.publisher || '';
+                document.getElementById('year').value = comic.publicationYear || '';
+            } catch (error) {
+                console.error('Error loading comic:', error);
+                alert('Unable to load comic. Redirecting to the list.');
+                window.location.href = 'index.html';
+            }
         }
 
-        function saveComic(event) {
+        async function saveComic(event) {
             event.preventDefault();
 
             const updatedComic = normalizeComicInput({
@@ -174,16 +180,27 @@
                 publicationYear: document.getElementById('year').value
             });
 
-            const updated = updateComicById(comicId, updatedComic);
-            if (!updated) {
-                alert('Failed to update comic');
-                return;
+            try {
+                await updateComicById(comicId, { ...updatedComic, id: Number(comicId) });
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error saving comic:', error);
+                alert('Unable to save comic. Please try again.');
             }
-
-            window.location.href = 'index.html';
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            if (!isUserLoggedIn()) {
+                const redirectUrl = encodeURIComponent(window.location.href);
+                window.location.href = `login.html?redirect=${redirectUrl}`;
+                return;
+            }
+
+            if (isViewOnlyMode()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
             await initializeTranslations();
 
             const languagesDatalist = document.getElementById('languages');

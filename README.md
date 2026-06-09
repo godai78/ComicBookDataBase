@@ -1,6 +1,6 @@
 # Comic Collection Manager
 
-A web application for managing your comic collection. Built with Node.js and vanilla JavaScript. Vibe-coded by godai using Cursor.
+A comic collection manager that stores data in a flat file on the server. The browser UI is still static HTML, CSS, and JavaScript, but the app now persists comics to `comics.json` in the project root.
 
 ## Changelog
 
@@ -8,31 +8,44 @@ See `CHANGELOG.md` for release history and notable updates.
 
 ## Features
 
-- View and search your comic collection
-- Add new comics with detailed information
-- Edit existing comic entries
-- Sort by any column (hierarchical: series → title → issue number)
-- Dynamic search suggestions
-- Import from Google Sheets using a pasted shared URL
-- Export to CSV (compatible with Google Docs/Sheets)
-- Record count display
+- View, search, add, edit, and delete comics in the browser
+- Sort by any column (series → title → issue number)
+- Dynamic search suggestions for series, title, writer, and artist
+- Import comics from a shared Google Sheets URL
+- Export your collection to CSV
+- Supports multiple languages via client-side translation files
+- Stores data in `comics.json` on the server
+- View-only mode hides add/edit/delete controls for safe browsing
 
-## Installation
+## Usage
 
-This project is now a static web app and can be hosted on any web server.
+### Start the server
+
+Install dependencies and run the server from the project root:
+
+```bash
+npm install
+npm start
+```
+
+Then open:
+
+```
+http://localhost:3000/index.html
+```
+
+### Deploying to a web server
 
 1. Upload the project files to your web host.
-2. Serve the files from the site root or a subdirectory.
-3. Open `index.html` in your browser.
+2. Install Node.js on the server.
+3. Run `npm install` and `npm start` in the project directory.
+4. Open `index.html` in your browser.
 
-To preview locally, you can use a simple static server:
-```bash
-python -m http.server 8000
-```
-Then visit:
-```
-http://localhost:8000/index.html
-```
+## Data Storage
+
+This version stores comic data in the flat file `comics.json` in the application root. The server exposes a simple REST API under `/api/comics` for the frontend.
+
+If you want to reset the collection, edit or replace `comics.json` on the server.
 
 ## Data Structure
 
@@ -47,21 +60,18 @@ Each comic entry contains:
 - `publisher`
 - `publicationYear`
 
-For an empty database, `comics.json` should contain:
-
-```json
-[]
-```
+> Note: `comics.json` is not used by the browser version. It remains in the repository only as a legacy/sample file.
 
 ## Technologies Used
 
 - Static HTML, CSS, and JavaScript
 - Browser `localStorage` for persistence
-- Google Sheets CSV import via client-side fetch
+- Client-side Google Sheets CSV import
+- Simple translation system using JSON files in `translations/`
 
 ## Translations
 
-The application supports multiple languages through a translation system. Currently available languages:
+The application supports multiple languages through translation files. Currently available languages:
 - English (en)
 - Polish (pl)
 - German (de)
@@ -70,20 +80,20 @@ The application supports multiple languages through a translation system. Curren
 
 ### Adding New Translations
 
-To add a new language:
-
 1. Create a new JSON file in the `translations` directory with the language code (e.g., `fr.json` for French)
 2. Copy the structure from `en.json` and translate all values
-3. The language will be automatically detected and added to the language selector
+3. The language will be available in the language selector automatically
 
 ### Using Translations in HTML
 
 To make an element translatable, add the `data-translate` attribute with the appropriate translation key:
+
 ```html
 <label data-translate="comic.fields.series">Series</label>
 ```
 
 For input placeholders:
+
 ```html
 <input type="text" data-translate-placeholder="search.seriesPlaceholder" placeholder="Search by series name...">
 ```
@@ -91,6 +101,7 @@ For input placeholders:
 ### Translation Structure
 
 The translation files follow this structure:
+
 ```json
 {
     "app": {
@@ -157,4 +168,5 @@ The translation files follow this structure:
         "backToTop": "Back to top"
     }
 }
-``` 
+```
+ 

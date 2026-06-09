@@ -94,7 +94,7 @@
 <body>
     <div class="container">
         <a href="index.html" class="nav-link" data-translate="navigation.backToMain">← Back to Main Page</a>
-        <div class="app-note">The comic is saved locally in your browser. No backend server is needed to use this app.</div>
+        <div class="app-note">The comic is saved to the server file database and will remain available on the server.</div>
         <h1 data-translate="comic.title.add">Add New Comic</h1>
         <form id="comicForm" onsubmit="saveComic(event)">
             <div class="form-group">
@@ -140,6 +140,17 @@
     <script src="translations.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            if (!isUserLoggedIn()) {
+                const redirectUrl = encodeURIComponent(window.location.href);
+                window.location.href = `login.html?redirect=${redirectUrl}`;
+                return;
+            }
+
+            if (isViewOnlyMode()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
             await initializeTranslations();
 
             const languagesDatalist = document.getElementById('languages');
@@ -152,7 +163,7 @@
             }
         });
 
-        function saveComic(event) {
+        async function saveComic(event) {
             event.preventDefault();
 
             const newComic = normalizeComicInput({
@@ -166,12 +177,13 @@
                 publicationYear: document.getElementById('year').value
             });
 
-            const comics = loadComicDatabase();
-            newComic.id = getNextId(comics);
-            comics.push(newComic);
-            saveComicDatabase(comics);
-
-            window.location.href = 'index.html';
+            try {
+                await createComic(newComic);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error creating comic:', error);
+                alert('Unable to save comic. Please try again.');
+            }
         }
     </script>
 </body>

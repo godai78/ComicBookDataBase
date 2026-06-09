@@ -25,6 +25,11 @@
 			background-color: #f8f9fa;
 			border-radius: 8px;
 		}
+		.search-panel {
+			margin-bottom: 20px;
+			display: grid;
+			gap: 16px;
+		}
 		.search-group {
 			margin-bottom: 15px;
 			position: relative;
@@ -286,12 +291,24 @@
 				<h1>Comic Collection Manager <span id="record-count" data-translate="app.recordCount"></span></h1>
 			</div>
 			<div class="button-group">
-			<select id="languageSelect" onchange="translatePage()" class="language-select"></select>
+				<button type="button" class="btn" id="loginBtn" onclick="goToLogin()">Login</button>
+				<button type="button" class="btn" id="logoutBtn" onclick="handleLogout()" style="display:none">Logout</button>
+                                <button type="button" class="btn" id="viewOnlyBtn" onclick="toggleViewOnly()">View-only mode</button>
+				<select id="languageSelect" onchange="translatePage()" class="language-select"></select>
 			</div>
 		</div>
 		<div class="app-note">
 			This app runs entirely in your browser and stores your collection in local storage. Use Import to load comic rows from a shared Google Sheets URL, and Export to download a CSV copy.
 		</div>
+		<div class="app-note" id="viewOnlyStatus" style="display:none">
+			View-only mode is enabled. Add, edit, and delete controls are hidden.
+		</div>
+		<div class="search-panel">
+			<div class="search-group">
+				<input type="text" id="seriesSearch" data-translate-placeholder="search.seriesPlaceholder" placeholder="Search by series name..." oninput="updateSeriesSuggestions()" onkeypress="handleKeyPress(event)">
+				<div id="seriesSuggestions" class="suggestions"></div>
+			</div>
+			<div class="search-group">
 				<input type="text" id="issueTitleSearch" data-translate-placeholder="search.issueTitlePlaceholder" placeholder="Search by issue title..." oninput="updateIssueTitleSuggestions()" onkeypress="handleKeyPress(event)">
 				<div id="issueTitleSuggestions" class="suggestions"></div>
 			</div>
@@ -324,7 +341,7 @@
 			<a href="add.html" class="add-btn" data-translate="search.addButton" id="addComicBtn">Add New Comic</a>
 		</div>
 		<div class="button-group">
-			<button type="button" onclick="importFromGoogleSheets()" data-translate="search.importButton">Import from Google Sheets</button>
+			<button type="button" id="importButton" onclick="importFromGoogleSheets()" data-translate="search.importButton">Import from Google Sheets</button>
 			<button type="button" onclick="exportToCSV()" data-translate="search.exportButton">Export to CSV</button>
 		</div>
 
@@ -353,13 +370,66 @@
 	<button id="returnToTop" title="Return to top">Back to top</button>
 
 	<script src="app.js"></script>
+	<script src="translations.js"></script>
 	<script>
 		let comicDatabase = [];
 		let currentSort = { field: null, direction: 'asc' };
 
-		function loadComicsFromStorage() {
+		function updateAuthUI() {
+			const loginBtn = document.getElementById('loginBtn');
+			const logoutBtn = document.getElementById('logoutBtn');
+			const viewOnlyBtn = document.getElementById('viewOnlyBtn');
+			const addComicBtn = document.getElementById('addComicBtn');
+			const importButton = document.getElementById('importButton');
+			const viewOnlyStatus = document.getElementById('viewOnlyStatus');
+
+			const authenticated = isUserLoggedIn();
+			const viewOnly = isViewOnlyMode();
+
+			if (authenticated) {
+				if (loginBtn) loginBtn.style.display = 'none';
+				if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+			} else {
+				if (loginBtn) loginBtn.style.display = 'inline-flex';
+				if (logoutBtn) logoutBtn.style.display = 'none';
+			}
+
+			if (viewOnly) {
+				if (viewOnlyBtn) viewOnlyBtn.textContent = 'Exit view-only mode';
+				if (viewOnlyStatus) viewOnlyStatus.style.display = 'block';
+			} else {
+				if (viewOnlyBtn) viewOnlyBtn.textContent = 'View-only mode';
+				if (viewOnlyStatus) viewOnlyStatus.style.display = 'none';
+			}
+
+			const canEdit = authenticated && !viewOnly;
+			if (addComicBtn) addComicBtn.style.display = canEdit ? 'inline-flex' : 'none';
+			if (importButton) importButton.style.display = canEdit ? 'inline-flex' : 'none';
+		}
+
+		function toggleViewOnly() {
+			const enabled = toggleViewOnlyMode();
+			updateAuthUI();
+			displayComics(comicDatabase);
+			if (!enabled && isUserLoggedIn()) {
+				// still keep add/import visible if the user is authenticated
+				updateAuthUI();
+			}
+		}
+
+		function goToLogin() {
+			const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+			window.location.href = `login.html?redirect=${redirect}`;
+		}
+
+		function handleLogout() {
+			logoutUser();
+			updateAuthUI();
+		}
+
+		async function loadComicsFromStorage() {
 			try {
-				comicDatabase = loadComicDatabase();
+				comicDatabase = await loadComicDatabase();
 				comicDatabase.sort((a, b) => {
 					const aSeries = (a.seriesTitle || '').trim();
 					const bSeries = (b.seriesTitle || '').trim();
@@ -491,9 +561,9 @@
 			});
 		}
 
-		function loadComicsFromStorage() {
+		async function loadComicsFromStorage() {
 			try {
-				comicDatabase = loadComicDatabase();
+				comicDatabase = await loadComicDatabase();
 				comicDatabase.sort((a, b) => {
 					const aSeries = (a.seriesTitle || '').trim();
 					const bSeries = (b.seriesTitle || '').trim();
@@ -524,10 +594,11 @@
 		function displayComics(comics) {
 			const tbody = document.getElementById('comicsTableBody');
 			tbody.innerHTML = '';
+			const canEdit = isUserLoggedIn() && !isViewOnlyMode();
 
 			comics.forEach(comic => {
 				const row = document.createElement('tr');
-				const actions = `
+				const actions = canEdit ? `
 					<button class="edit-btn" onclick="editComic('${comic.id}')" title="Edit">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -540,7 +611,7 @@
 							<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
 						</svg>
 					</button>
-				`;
+				` : '';
 
 				row.innerHTML = `
 					<td>${comic.seriesTitle}</td>
@@ -911,12 +982,12 @@
 		}
 
 		// Function to delete a comic
-		function deleteComic(id) {
+		async function deleteComic(id) {
 			if (!confirm('Are you sure you want to delete this comic?')) {
 				return;
 			}
 
-			comicDatabase = deleteComicById(id);
+			comicDatabase = await deleteComicById(id);
 			displayComics(comicDatabase);
 			updateRecordCount(comicDatabase.length);
 			updateLanguageDropdown();
@@ -924,8 +995,15 @@
 			updateYearDropdown();
 		}
 
-		// Initial load of comics
-		loadComicsFromStorage();
+		async function initializeApp() {
+			await initializeTranslations().catch(error => {
+				console.error('Error initializing translations:', error);
+			});
+			await loadComicsFromStorage();
+			updateAuthUI();
+		}
+
+		document.addEventListener('DOMContentLoaded', initializeApp);
 
 		// Return to top functionality
 		const returnToTopButton = document.getElementById('returnToTop');
@@ -945,6 +1023,5 @@
 			});
 		});
 	</script>
-	<script src="translations.js"></script>
 </body>
 </html> 
