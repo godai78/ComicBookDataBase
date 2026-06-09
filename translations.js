@@ -1,20 +1,25 @@
-// Helper function to get nested translation
+const AVAILABLE_LANGUAGES = [
+    { code: 'en', name: 'English' },
+    { code: 'pl', name: 'Polski' },
+    { code: 'sv', name: 'Svenska' },
+    { code: 'de', name: 'Deutsch' },
+    { code: 'fr', name: 'Français' }
+];
+
 function getTranslation(translations, key) {
     return key.split('.').reduce((obj, k) => obj && obj[k], translations);
 }
 
-// Translate the page
 function translatePage() {
     const select = document.getElementById('languageSelect');
     const currentLang = select ? select.value : (localStorage.getItem('selectedLanguage') || 'en');
-    const translations = window.translations[currentLang];
+    const translations = window.translations && window.translations[currentLang];
 
     if (!translations) {
         console.error('No translations found for language:', currentLang);
         return;
     }
 
-    // Translate all elements with data-translate attribute
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
         const translation = getTranslation(translations, key);
@@ -32,7 +37,6 @@ function translatePage() {
         }
     });
 
-    // Translate all elements with data-translate-placeholder attribute
     document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
         const key = element.getAttribute('data-translate-placeholder');
         const translation = getTranslation(translations, key);
@@ -41,45 +45,55 @@ function translatePage() {
         }
     });
 
-    // Save selected language
     localStorage.setItem('selectedLanguage', currentLang);
 }
 
-// Initialize translations
+async function loadTranslations() {
+    const translationPromises = AVAILABLE_LANGUAGES.map(lang =>
+        fetch(`translations/${lang.code}.json`).then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to load translations for ${lang.code}`);
+            }
+            return response.json();
+        })
+    );
+
+    const translationData = await Promise.all(translationPromises);
+    const translations = {};
+    translationData.forEach((data, index) => {
+        translations[AVAILABLE_LANGUAGES[index].code] = data;
+    });
+
+    window.translations = translations;
+    window.availableLanguages = AVAILABLE_LANGUAGES;
+}
+
 async function initializeTranslations() {
     try {
-        const response = await fetch('/translations');
-        if (!response.ok) throw new Error('Failed to load translations');
-        const data = await response.json();
-        window.translations = data.translations;
-        window.availableLanguages = data.availableLanguages;
-        
-        // Populate language dropdown
+        if (!window.translations) {
+            await loadTranslations();
+        }
+
         const languageSelect = document.getElementById('languageSelect');
         if (languageSelect) {
-            languageSelect.innerHTML = ''; // Clear existing options
-            Object.keys(window.translations).forEach(langCode => {
+            languageSelect.innerHTML = '';
+            AVAILABLE_LANGUAGES.forEach(lang => {
                 const option = document.createElement('option');
-                option.value = langCode;
-                option.textContent = langCode.toUpperCase();
+                option.value = lang.code;
+                option.textContent = lang.name;
                 languageSelect.appendChild(option);
             });
-            
-            // Set initial language
+
             const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-            if (Object.keys(window.translations).includes(savedLang)) {
-                languageSelect.value = savedLang;
-            } else {
-                languageSelect.value = 'en';
-            }
-            
-            // Initial translation
-            translatePage();
+            languageSelect.value = AVAILABLE_LANGUAGES.some(lang => lang.code === savedLang)
+                ? savedLang
+                : 'en';
         }
+
+        translatePage();
     } catch (error) {
         console.error('Error loading translations:', error);
     }
 }
 
-// Call initialization when the page loads
 document.addEventListener('DOMContentLoaded', initializeTranslations); 

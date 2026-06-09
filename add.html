@@ -80,11 +80,21 @@
         .nav-link:hover {
             text-decoration: underline;
         }
+        .app-note {
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background-color: #e8f1ff;
+            border: 1px solid #b4d4ff;
+            border-radius: 8px;
+            color: #0a2f66;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="index.html" class="nav-link" data-translate="navigation.backToMain">← Back to Main Page</a>
+        <div class="app-note">The comic is saved locally in your browser. No backend server is needed to use this app.</div>
         <h1 data-translate="comic.title.add">Add New Comic</h1>
         <form id="comicForm" onsubmit="saveComic(event)">
             <div class="form-group">
@@ -126,83 +136,42 @@
             </div>
         </form>
     </div>
-    <script src="/translations.js"></script>
+    <script src="app.js"></script>
+    <script src="translations.js"></script>
     <script>
-        // Load translations when the page loads
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!isLoggedIn()) {
-                window.location.href = 'login.html?redirect=add.html';
-                return;
-            }
+            await initializeTranslations();
 
-            try {
-                // Get the saved language from localStorage (set by main page)
-                const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-                
-                // Fetch translations
-                const response = await fetch('/translations');
-                if (!response.ok) throw new Error('Failed to load translations');
-                const data = await response.json();
-                
-                // Set up translations
-                window.translations = data.translations;
-                window.availableLanguages = data.availableLanguages;
-                
-                // Apply translations
-                translatePage();
-                
-                // Set up language datalist
-                const languagesDatalist = document.getElementById('languages');
-                if (languagesDatalist) {
-                    availableLanguages.forEach(lang => {
-                        const option = document.createElement('option');
-                        option.value = lang.name;
-                        languagesDatalist.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading translations:', error);
+            const languagesDatalist = document.getElementById('languages');
+            if (languagesDatalist) {
+                APP.AVAILABLE_LANGUAGES.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang.name;
+                    languagesDatalist.appendChild(option);
+                });
             }
         });
 
-        function isLoggedIn() {
-            return !!localStorage.getItem('authToken');
-        }
-
-        // Handle form submission
-        async function saveComic(event) {
+        function saveComic(event) {
             event.preventDefault();
-            const formData = {
+
+            const newComic = normalizeComicInput({
                 seriesTitle: document.getElementById('series').value,
                 issueTitle: document.getElementById('title').value,
-                issueNumber: parseInt(document.getElementById('number').value) || 1,
-                writers: document.getElementById('writers').value.split(',').map(w => w.trim()).filter(Boolean),
-                artists: document.getElementById('artists').value.split(',').map(a => a.trim()).filter(Boolean),
+                issueNumber: document.getElementById('number').value,
+                writers: document.getElementById('writers').value,
+                artists: document.getElementById('artists').value,
                 language: document.getElementById('language').value,
                 publisher: document.getElementById('publisher').value,
-                publicationYear: parseInt(document.getElementById('year').value) || null
-            };
+                publicationYear: document.getElementById('year').value
+            });
 
-            try {
-                const response = await fetch('/api/comics', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(formData)
-                });
+            const comics = loadComicDatabase();
+            newComic.id = getNextId(comics);
+            comics.push(newComic);
+            saveComicDatabase(comics);
 
-                if (!response.ok) {
-                    throw new Error('Failed to save comic');
-                }
-
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Error saving comic:', error);
-                alert('Error saving comic. Please try again.');
-            }
+            window.location.href = 'index.html';
         }
     </script>
 </body>

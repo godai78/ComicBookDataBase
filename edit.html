@@ -80,11 +80,21 @@
         .nav-link:hover {
             text-decoration: underline;
         }
+        .app-note {
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background-color: #e8f1ff;
+            border: 1px solid #b4d4ff;
+            border-radius: 8px;
+            color: #0a2f66;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="index.html" class="nav-link" data-translate="navigation.backToMain">← Back to Main Page</a>
+        <div class="app-note">This record is stored in your browser and will remain there until you clear storage or import/export it elsewhere.</div>
         <h1 data-translate="comic.title.edit">Edit Comic</h1>
         <form id="editComicForm" onsubmit="saveComic(event)">
             <div class="form-group">
@@ -126,112 +136,66 @@
             </div>
         </form>
     </div>
-    <script src="/translations.js"></script>
+    <script src="app.js"></script>
+    <script src="translations.js"></script>
     <script>
-        // Get comic ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const comicId = urlParams.get('id');
 
-        function isLoggedIn() {
-            return !!localStorage.getItem('authToken');
-        }
-
-        // Load comic data
-        async function loadComicData() {
-            try {
-                const response = await fetch(`/api/comics/${comicId}`);
-                if (!response.ok) throw new Error('Failed to load comic');
-                
-                const comic = await response.json();
-                
-                // Populate form fields
-                document.getElementById('series').value = comic.seriesTitle || '';
-                document.getElementById('title').value = comic.issueTitle || '';
-                document.getElementById('number').value = comic.issueNumber || '';
-                document.getElementById('writers').value = (Array.isArray(comic.writers) ? comic.writers : [comic.writer]).join(', ');
-                document.getElementById('artists').value = (Array.isArray(comic.artists) ? comic.artists : []).join(', ');
-                document.getElementById('language').value = comic.language || '';
-                document.getElementById('publisher').value = comic.publisher || '';
-                document.getElementById('year').value = comic.publicationYear || '';
-            } catch (error) {
-                console.error('Error loading comic:', error);
-                alert('Failed to load comic data');
-            }
-        }
-
-        // Handle form submission
-        async function saveComic(event) {
-            event.preventDefault();
-            
-            const comicData = {
-                seriesTitle: document.getElementById('series').value,
-                issueTitle: document.getElementById('title').value,
-                issueNumber: parseInt(document.getElementById('number').value) || 1,
-                writers: document.getElementById('writers').value.split(',').map(w => w.trim()).filter(Boolean),
-                artists: document.getElementById('artists').value.split(',').map(a => a.trim()).filter(Boolean),
-                language: document.getElementById('language').value,
-                publisher: document.getElementById('publisher').value,
-                publicationYear: parseInt(document.getElementById('year').value) || null
-            };
-
-            try {
-                const response = await fetch(`/api/comics/${comicId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(comicData)
-                });
-
-                if (!response.ok) throw new Error('Failed to update comic');
-                
+        function loadComicData() {
+            const comic = getComicById(comicId);
+            if (!comic) {
+                alert('Comic not found');
                 window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Error updating comic:', error);
-                alert('Failed to update comic');
-            }
-        }
-
-        // Load translations when the page loads
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!isLoggedIn()) {
-                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
                 return;
             }
 
-            try {
-                // Get the saved language from localStorage (set by main page)
-                const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-                
-                // Fetch translations
-                const response = await fetch('/translations');
-                if (!response.ok) throw new Error('Failed to load translations');
-                const data = await response.json();
-                
-                // Set up translations
-                window.translations = data.translations;
-                window.availableLanguages = data.availableLanguages;
-                
-                // Apply translations
-                translatePage();
-                
-                // Set up language datalist
-                const languagesDatalist = document.getElementById('languages');
-                if (languagesDatalist) {
-                    availableLanguages.forEach(lang => {
-                        const option = document.createElement('option');
-                        option.value = lang.name;
-                        languagesDatalist.appendChild(option);
-                    });
-                }
+            document.getElementById('series').value = comic.seriesTitle || '';
+            document.getElementById('title').value = comic.issueTitle || '';
+            document.getElementById('number').value = comic.issueNumber || '';
+            document.getElementById('writers').value = (Array.isArray(comic.writers) ? comic.writers : [comic.writer]).join(', ');
+            document.getElementById('artists').value = (Array.isArray(comic.artists) ? comic.artists : []).join(', ');
+            document.getElementById('language').value = comic.language || '';
+            document.getElementById('publisher').value = comic.publisher || '';
+            document.getElementById('year').value = comic.publicationYear || '';
+        }
 
-                // Load comic data after translations are set up
-                await loadComicData();
-            } catch (error) {
-                console.error('Error loading translations:', error);
+        function saveComic(event) {
+            event.preventDefault();
+
+            const updatedComic = normalizeComicInput({
+                seriesTitle: document.getElementById('series').value,
+                issueTitle: document.getElementById('title').value,
+                issueNumber: document.getElementById('number').value,
+                writers: document.getElementById('writers').value,
+                artists: document.getElementById('artists').value,
+                language: document.getElementById('language').value,
+                publisher: document.getElementById('publisher').value,
+                publicationYear: document.getElementById('year').value
+            });
+
+            const updated = updateComicById(comicId, updatedComic);
+            if (!updated) {
+                alert('Failed to update comic');
+                return;
             }
+
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeTranslations();
+
+            const languagesDatalist = document.getElementById('languages');
+            if (languagesDatalist) {
+                APP.AVAILABLE_LANGUAGES.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang.name;
+                    languagesDatalist.appendChild(option);
+                });
+            }
+
+            loadComicData();
         });
     </script>
 </body>

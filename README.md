@@ -19,25 +19,19 @@ See `CHANGELOG.md` for release history and notable updates.
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/godai78/ComicBookDataBase.git
-cd ComicBookDataBase
-```
+This project is now a static web app and can be hosted on any web server.
 
-2. Install dependencies:
-```bash
-npm install
-```
+1. Upload the project files to your web host.
+2. Serve the files from the site root or a subdirectory.
+3. Open `index.html` in your browser.
 
-3. Start the server:
+To preview locally, you can use a simple static server:
 ```bash
-node server.js
+python -m http.server 8000
 ```
-
-4. Open your browser and navigate to:
+Then visit:
 ```
-http://localhost:3000
+http://localhost:8000/index.html
 ```
 
 ## Data Structure
@@ -61,10 +55,9 @@ For an empty database, `comics.json` should contain:
 
 ## Technologies Used
 
-- Node.js
-- Express.js
-- Vanilla JavaScript
-- Google Sheets CSV export endpoint
+- Static HTML, CSS, and JavaScript
+- Browser `localStorage` for persistence
+- Google Sheets CSV import via client-side fetch
 
 ## Translations
 

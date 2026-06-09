@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.8] - 2026-06-09
+
+### Changed
+- Ported to a fully browser version.
+
 ## [0.7] - 2026-06-02
 
 ### Added
