@@ -1,3 +1,5 @@
+This version is broken as of now.
+
 # Comic Collection Manager
 
 A comic collection manager that stores data in a flat file on the server. The browser UI is still static HTML, CSS, and JavaScript, but the app now persists comics to `comics.json` in the project root.
