@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "csv-parse": "^6.2.1",
+    "csv-parse": "^7.0.2",
     "express": "^5.2.1",
     "node-fetch": "^2.7.0"
   }
